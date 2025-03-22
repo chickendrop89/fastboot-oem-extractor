@@ -24,9 +24,6 @@ pip install -r requirements.txt
 (x) Found 1 UEFI portable executable(s)
 (x) Matching 'oem *' ascii strings
 
-oem CmdOemGetSim
-oem CmdOemSetSim
-oem cmd
 oem device-info
 oem disable-charger-screen
 oem edl
@@ -39,10 +36,24 @@ oem lkmsg
 oem lock
 oem lpmsg
 oem off-mode-charge
-oem off-mode-charge 0/1
 oem poweroff
 oem select-display-panel
 oem set-hw-fence-value
 oem uart-enable
 oem unlock
+```
+
+## Disclaimer:
+The output oem commands might not be 100% correct as we are searching 
+for strings containing `oem <xxx>` in the raw file at the final stage.
+
+Because of that, you might see some anomalities something like this:
+```shell
+...
+oem get_token
+oem key
+oem key and dm_cert key are mismatch.
+oem lks
+oem lock
+...
 ```
