@@ -44,16 +44,5 @@ oem unlock
 ```
 
 ## Disclaimer:
-The output oem commands might not be 100% correct as we are searching 
-for strings containing `oem <xxx>` in the raw file at the final stage.
-
-Because of that, you might see some anomalities something like this:
-```shell
-...
-oem get_token
-oem key
-oem key and dm_cert key are mismatch.
-oem lks
-oem lock
-...
-```
+In rare cases, this code might output some hallucinations of commands that don't exist,
+or don't work after the device is sent out of factory. Keep this in mind
