@@ -60,6 +60,8 @@ def find_oem_commands(firmware_file: Path) -> None:
             # (compatibility) pylint: disable=inconsistent-quotes
             f'oem {s.decode("ascii", "ignore").strip()}'
             for s in strings
+            # Filter only strings containing two words (e.g. "oem xxx")
+            if len(f'oem {s.decode("ascii", "ignore").strip()}'.split()) == 2
         ))
         logger.info('Matching \'oem *\' ascii strings')
         print('\n' + '\n'.join(cmds))
