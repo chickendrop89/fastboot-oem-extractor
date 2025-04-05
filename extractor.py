@@ -67,9 +67,10 @@ def find_oem_commands(firmware_file: Path) -> None:
             # Filter only strings containing two words (e.g. "oem xxx")
             if 2 <= len(f'oem {s.decode("ascii", "ignore").strip()}'.split()) <= 3
         ))
-        logger.info('Matching \'oem *\' ascii strings')
-        print('\n' + '\n'.join(cmds))
-        return 1
+        if cmds:
+            logger.info('Matching \'oem *\' ascii strings')
+            print('\n' + '\n'.join(cmds))
+            return 1
 
     logger.info('No fastboot oem commands found')
     return 1
