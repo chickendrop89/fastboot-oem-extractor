@@ -105,7 +105,7 @@ def check_firmware(firmware_file: Path) -> bool:
     def check_uefi_structure(data: bytes) -> None:
         """Search for UEFI firmware structure in data"""
 
-        for offset in range(0, len(data), 32):
+        for offset in range(0, len(data), 2048):
             parser = AutoParser(data[offset:], search=False)
             if parser.type() != 'unknown':
                 logger.info('Found valid UEFI firmware structure at offset: 0x%x', offset)
