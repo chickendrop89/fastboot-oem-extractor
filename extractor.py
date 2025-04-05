@@ -71,8 +71,7 @@ def find_oem_commands(firmware_file: Path) -> None:
         print('\n' + '\n'.join(cmds))
         return 1
 
-    logger.info('No fastboot oem commands found in %s/%s',
-       firmware_file.parent.name, firmware_file.name)
+    logger.info('No fastboot oem commands found')
     return 1
 
 def extract_pe_files(parser: AutoParser) -> bool | list:
