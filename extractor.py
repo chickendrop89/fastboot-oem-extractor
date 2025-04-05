@@ -27,8 +27,10 @@ from pathlib import Path
 from uefi_firmware import AutoParser
 
 BL_MAGIC_PATTERNS = [
-    bytes.fromhex('88 16 88 58'),  # Common MTK LK magic
-    bytes.fromhex('46 42 50 4B')  # FastBootPacK (Google)
+    bytes.fromhex('88 16 88 58'),  # Little Kernel (LK)
+    bytes.fromhex('46 42 50 4B'),  # FBPK container
+    bytes.fromhex('7F 45 4C 46'),  # Common ELF binaries
+    bytes.fromhex('41 4E 44 52 4F 49 44 21 CC')  # lk1st, lk2nd
 ]
 
 def setup_logging() -> logging.Logger:
@@ -67,9 +69,11 @@ def find_oem_commands(firmware_file: Path) -> None:
         ))
         logger.info('Matching \'oem *\' ascii strings')
         print('\n' + '\n'.join(cmds))
-    else:
-        logger.info('No fastboot oem commands found in %s/%s',
-           firmware_file.parent.name, firmware_file.name)
+        return 1
+
+    logger.info('No fastboot oem commands found in %s/%s',
+       firmware_file.parent.name, firmware_file.name)
+    return 1
 
 def extract_pe_files(parser: AutoParser) -> bool | list:
     """Extract firmware file and search for portable executables"""
@@ -90,42 +94,55 @@ def extract_pe_files(parser: AutoParser) -> bool | list:
         logger.info('Found %s UEFI portable executable(s)', len(pe_files))
         for pe in pe_files:
             find_oem_commands(pe)
-    return 0
+    return 1
 
-def check_firmware(firmware_file: Path) -> bool | AutoParser:
+def check_firmware(firmware_file: Path) -> bool:
     """Analyze firmware file for OEM commands"""
 
-    try:
-        logger.info('Reading firmware file: %s', firmware_file)
+    # Ensure firmware_file is Path and not String
+    firmware_file = Path(firmware_file)
 
-        # Check for general bootloader magic bytes
+    def check_uefi_structure(data: bytes) -> None:
+        """Search for UEFI firmware structure in data"""
+
+        for offset in range(0, len(data), 32):
+            parser = AutoParser(data[offset:], search=False)
+            if parser.type() != 'unknown':
+                logger.info('Found valid UEFI firmware structure at offset: 0x%x', offset)
+                return extract_pe_files(parser)
+        return None
+
+    def check_bootloader_magic() -> None:
+        """Check for known bootloader magic patterns"""
+
         with open(firmware_file, 'rb') as fh:
             header = fh.read(max(len(pattern) for pattern in BL_MAGIC_PATTERNS))
+
             for pattern in BL_MAGIC_PATTERNS:
                 if header.startswith(pattern):
                     logger.info('File contains common bootloader magic bytes')
-                    find_oem_commands(Path(firmware_file))
-                    return 1
-        fh.close()
+                    return find_oem_commands(firmware_file)
+        return None
 
+    try:
+        logger.info('Reading firmware file: %s', firmware_file)
         with open(firmware_file, 'rb') as fh:
             input_data = fh.read()
-
+            fh.close()
     except OSError as error:
-        logger.info('Cannot read file (%s): %s', firmware_file, str(error))
+        logger.error('Cannot read file (%s): %s', firmware_file, str(error))
+        return 0
+
+    # Search for UEFI structure
+    if check_uefi_structure(input_data):
+        del input_data # memory cleanup
         return 1
 
-    # Search for firmware structure
-    for i in range(0, len(input_data), 32):
-        parser = AutoParser(input_data[i:], search=False)
-        if parser.type() != 'unknown':
-            logger.info('Found valid firmware structure at offset: 0x%x', i)
-            break
-    else:
-        logger.info('Couldn\'t find any firmware structure. Cannot continue')
+    # Or, if failed, check for bootloader magic
+    if check_bootloader_magic():
         return 1
 
-    return extract_pe_files(parser)
+    logger.error('Could not recognize the provided firmware file')
 
 def main() -> Path:
     """Main entry point"""
