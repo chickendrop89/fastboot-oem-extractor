@@ -26,8 +26,10 @@ import tempfile
 from pathlib import Path
 from uefi_firmware import AutoParser
 
-# Common magic bytes for Little Kernel firmware
-LK_MAGIC_BYTES = bytes.fromhex('88 16 88 58')
+BL_MAGIC_PATTERNS = [
+    bytes.fromhex('88 16 88 58'),  # Common MTK LK magic
+    bytes.fromhex('46 42 50 4B')  # FastBootPacK (Google)
+]
 
 def setup_logging() -> logging.Logger:
     """Configure logging"""
@@ -96,12 +98,14 @@ def check_firmware(firmware_file: Path) -> bool | AutoParser:
     try:
         logger.info('Reading firmware file: %s', firmware_file)
 
-        # Check for little kernel magic bytes, if not found, close
+        # Check for general bootloader magic bytes
         with open(firmware_file, 'rb') as fh:
-            if fh.read(len(LK_MAGIC_BYTES)) == LK_MAGIC_BYTES:
-                logger.info('File contains little kernel magic bytes')
-                find_oem_commands(Path(firmware_file))
-                return 1
+            header = fh.read(max(len(pattern) for pattern in BL_MAGIC_PATTERNS))
+            for pattern in BL_MAGIC_PATTERNS:
+                if header.startswith(pattern):
+                    logger.info('File contains common bootloader magic bytes')
+                    find_oem_commands(Path(firmware_file))
+                    return 1
         fh.close()
 
         with open(firmware_file, 'rb') as fh:
