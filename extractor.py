@@ -148,7 +148,7 @@ def main() -> Path:
     """Main entry point"""
 
     parser = argparse.ArgumentParser(
-        description='Extract hidden "fastboot oem" commands from firmware blobs (ABL, LK)'
+        description='Extract hidden "fastboot oem" commands from firmware blobs'
     )
     parser.add_argument('file', help='Firmware file to analyze')
     args = parser.parse_args()

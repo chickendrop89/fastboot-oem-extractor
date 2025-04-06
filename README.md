@@ -6,7 +6,7 @@ These firmware blobs will be accepted by this tool
 - ABL (Qualcomm)
 - LK (MediaTek)
 - Anything else containing UEFI PEs
-- Anything else containing LK magic bytes
+- Anything else containing common bootloader magic bytes
 
 ## How to use:
 1. Install python requirements
