@@ -6,7 +6,7 @@ These firmware blobs will be accepted by this tool
 - ABL (Qualcomm)
 - LK (MediaTek)
 - Anything else containing UEFI PEs
-- Anything else containing common bootloader magic bytes
+- Anything else containing [common bootloader magic bytes](https://github.com/chickendrop89/fastboot-oem-extractor/blob/master/extractor.py#L29C5-L29C6)
 
 ## How to use:
 1. Install python requirements
