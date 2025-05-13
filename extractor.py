@@ -97,7 +97,7 @@ def extract_pe_files(parser: AutoParser) -> bool | list:
             find_oem_commands(pe)
     return 1
 
-def check_firmware(firmware_file: Path) -> bool:
+def check_firmware(firmware_file: Path, force_string_lookup: bool = False) -> bool:
     """Analyze firmware file for OEM commands"""
 
     # Ensure firmware_file is Path and not String
@@ -134,6 +134,10 @@ def check_firmware(firmware_file: Path) -> bool:
         logger.error('Cannot read file (%s): %s', firmware_file, str(error))
         return 0
 
+    # If string lookup is forced
+    if force_string_lookup is True:
+        return find_oem_commands(firmware_file)
+
     # Search for UEFI structure
     if check_uefi_structure(input_data):
         del input_data # memory cleanup
@@ -149,12 +153,22 @@ def main() -> Path:
     """Main entry point"""
 
     parser = argparse.ArgumentParser(
-        description='Extract hidden "fastboot oem" commands from firmware blobs'
+        description='Extract hidden "fastboot oem" commands from firmware blobs',
+        add_help=False
     )
-    parser.add_argument('file', help='Firmware file to analyze')
+    parser.add_argument(
+        'file', 
+        help='Firmware file to analyze'
+    )
+    parser.add_argument(
+        '-fsl, --force-string-lookup',
+        help='Force string lookup on unsupported files',
+        action='store_true',
+        dest='fsl',
+    )
     args = parser.parse_args()
 
-    return check_firmware(args.file)
+    return check_firmware(args.file, args.fsl)
 
 # Initialize logger
 logger = setup_logging()
