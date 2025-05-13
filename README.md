@@ -43,6 +43,12 @@ oem uart-enable
 oem unlock
 ```
 
+If your file is some sparse image that does not contain any UEFI PEs or common magic bytes,
+you can force the string lookup via this command line option:
+```shell
+--force-string-lookup
+```
+
 ## Disclaimer:
 In rare cases, this code might output some hallucinations of commands that don't exist,
 or don't work after the device is sent out of factory. Keep this in mind
