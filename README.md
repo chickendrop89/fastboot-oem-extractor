@@ -8,6 +8,7 @@ These firmware blobs will be accepted by this tool
 - `LK` (MediaTek)
 - `FBPK` Containers (Google)
 - `DHTB` Signed binaries (U-Boot)
+- `ELF` Linux binaries
 - Anything else containing UEFI PEs
 
 This is an artificial barrier for when this tool is ran in a loop against firmware images
