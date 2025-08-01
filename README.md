@@ -3,10 +3,14 @@ Extract hidden "fastboot oem" commands from firmware blobs
 
 ## Supported firmware
 These firmware blobs will be accepted by this tool 
-- ABL (Qualcomm)
-- LK (MediaTek)
+- `ABL` (Qualcomm)
+- `LK1st, LK2nd` (Qualcomm)
+- `LK` (MediaTek)
+- `FBPK` Containers (Google)
+- `DHTB` Signed binaries (U-Boot)
 - Anything else containing UEFI PEs
-- Anything else containing [common bootloader magic bytes](https://github.com/chickendrop89/fastboot-oem-extractor/blob/master/extractor.py#L29C5-L29C6)
+
+This is an artificial barrier for when this tool is ran in a loop against firmware images
 
 ## How to use:
 1. Install python requirements
@@ -43,7 +47,7 @@ oem uart-enable
 oem unlock
 ```
 
-If your file is some sparse image that does not contain any UEFI PEs or common magic bytes,
+If your file is some sparse image that does not contain any UEFI PEs or common binary magic bytes,
 you can force the string lookup via this command line option:
 ```shell
 --force-string-lookup
