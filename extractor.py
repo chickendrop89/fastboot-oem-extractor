@@ -42,7 +42,7 @@ def setup_logging() -> logging.Logger:
             record.msg = f"(x) {record.msg}"
             return super().format(record)
 
-    log = logging.getLogger('oem_extractor')
+    log = logging.getLogger('fastboot-oem-extractor')
     log.setLevel(logging.INFO)
     log.propagate = False
 
