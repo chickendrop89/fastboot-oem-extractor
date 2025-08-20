@@ -57,3 +57,7 @@ you can force the string lookup via this command line option:
 ## Disclaimer:
 In rare cases, this code might output some hallucinations of commands that don't exist,
 or don't work after the device is sent out of factory. Keep this in mind
+
+## Requirements
+- Python 3.6 or newer
+- Installed `uefi_firmware` pip package
