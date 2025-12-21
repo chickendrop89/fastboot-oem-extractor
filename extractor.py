@@ -159,8 +159,9 @@ def check_firmware(firmware_file: Path, force_string_lookup: bool = False) -> bo
 
         if header.startswith(bytes.fromhex('4D 5A')):
             logger.info('File contains portable executable magic bytes')
-            extract_bootloader_pe_files()
-            return None
+            if extract_bootloader_pe_files():
+                return True
+            return None  # Continue to UEFI check
 
         for pattern in BL_MAGIC_PATTERNS[1:]:
             if header.startswith(pattern):
