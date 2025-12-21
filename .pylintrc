@@ -37,7 +37,7 @@ suggestion-mode=yes
 # --enable=similarities". If you want to run only the classes checker, but have
 # no Warning level messages displayed, use "--disable=all --enable=classes
 # --disable=W".
-disable=missing-module-docstring
+disable=missing-module-docstring, missing-class-docstring
 
 
 [CLASSES]
@@ -58,6 +58,7 @@ expected-line-ending-format=LF
 # Regexp for a line that is allowed to be longer than the limit.
 ignore-long-lines=^\s*(# )?<?https?://\S+>?$
 
+
 [MISCELLANEOUS]
 
 # List of note tags to take in consideration, separated by a comma.
@@ -66,6 +67,7 @@ notes=BUG,
 
 # Regular expression of note tags to take in consideration.
 #notes-rgx=
+
 
 [STRING]
 
@@ -77,3 +79,7 @@ check-quote-consistency=yes
 # on implicit string concatenation in sequences defined over several lines.
 check-str-concat-over-line-jumps=yes
 
+
+[FORMAT]
+
+max-line-length=110
