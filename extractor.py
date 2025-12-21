@@ -27,12 +27,14 @@ from pathlib import Path
 from uefi_firmware import AutoParser
 
 BL_MAGIC_PATTERNS = [
+    bytes.fromhex('4D 5A'),        # Portable Executable (PE)
     bytes.fromhex('88 16 88 58'),  # Little Kernel (LK)
     bytes.fromhex('46 42 50 4B'),  # FBPK container
     bytes.fromhex('44 48 54 42'),  # DHTB signed binary
     bytes.fromhex('7F 45 4C 46'),  # ELF binary
     bytes.fromhex('41 4E 44 52 4F 49 44 21 CC')  # lk1st, lk2nd
 ]
+
 
 def setup_logging() -> logging.Logger:
     """Configure logging"""
@@ -53,7 +55,8 @@ def setup_logging() -> logging.Logger:
 
     return log
 
-def find_oem_commands(firmware_file: Path) -> None:
+
+def find_oem_commands(firmware_file: Path) -> bool:
     """Extract oem commands from a firmware file"""
 
     # Matching for "oem <xxx>"
@@ -71,12 +74,13 @@ def find_oem_commands(firmware_file: Path) -> None:
         if cmds:
             logger.info('Matching \'oem *\' ascii strings')
             print('\n' + '\n'.join(cmds))
-            return 1
+            return True
 
     logger.info('No fastboot oem commands found')
-    return 1
+    return True
 
-def extract_pe_files(parser: AutoParser) -> bool | list:
+
+def extract_pe_files(parser: AutoParser) -> bool:
     """Extract firmware file and search for portable executables"""
 
     with tempfile.TemporaryDirectory() as tmpdir:
@@ -84,18 +88,21 @@ def extract_pe_files(parser: AutoParser) -> bool | list:
 
         # Stop dump() from writing to stdout
         with contextlib.redirect_stdout(io.StringIO()):
-            parser.parse().dump(tmpdir)
+            parsed = parser.parse()
+            if parsed is not None:
+                parsed.dump(tmpdir)
 
         # Glob for files with the extension '.pe' recursively
         pe_files = list(Path(tmpdir).rglob('*.pe'))
         if not pe_files:
             logger.info('No UEFI portable executables found')
-            return 1
+            return True
 
         logger.info('Found %s UEFI portable executable(s)', len(pe_files))
         for pe in pe_files:
             find_oem_commands(pe)
-    return 1
+    return True
+
 
 def check_firmware(firmware_file: Path, force_string_lookup: bool = False) -> bool:
     """Analyze firmware file for OEM commands"""
@@ -103,53 +110,89 @@ def check_firmware(firmware_file: Path, force_string_lookup: bool = False) -> bo
     # Ensure firmware_file is Path and not String
     firmware_file = Path(firmware_file)
 
-    def check_uefi_structure(data: bytes) -> None:
-        """Search for UEFI firmware structure in data"""
+    def check_uefi_structure(data: bytes) -> bool | None:
+        """Search for UEFI firmware structure (first 10MB)"""
+        max_offsets = min(len(data) // 2048, 100)
 
-        for offset in range(0, len(data), 2048):
+        for i in range(max_offsets):
+            offset = i * 2048
+            if offset >= len(data):
+                break
             parser = AutoParser(data[offset:], search=False)
             if parser.type() != 'unknown':
                 logger.info('Found valid UEFI firmware structure at offset: 0x%x', offset)
                 return extract_pe_files(parser)
         return None
 
-    def check_bootloader_magic() -> None:
-        """Check for known bootloader magic patterns"""
+    def extract_bootloader_pe_files() -> bool:
+        """Extract PE files from bootloader (first 10MB)"""
+        try:
+            with open(firmware_file, 'rb') as fh:
+                bootloader_data = fh.read(10 * 1024 * 1024)
+        except OSError:
+            return False
 
-        with open(firmware_file, 'rb') as fh:
-            header = fh.read(max(len(pattern) for pattern in BL_MAGIC_PATTERNS))
+        with tempfile.TemporaryDirectory() as tmpdir:
+            pe_offsets = [i for i in range(len(bootloader_data) - 1)
+                          if bootloader_data[i:i+2] == b'MZ']
+            if not pe_offsets:
+                return False
 
-            for pattern in BL_MAGIC_PATTERNS:
-                if header.startswith(pattern):
-                    logger.info('File contains common bootloader magic bytes')
-                    return find_oem_commands(firmware_file)
+            logger.info('Found %s embedded PE file(s)', len(pe_offsets))
+            for idx, offset in enumerate(pe_offsets):
+                try:
+                    end_offset = pe_offsets[idx + 1] if idx + 1 < len(pe_offsets) else len(bootloader_data)
+                    pe_file = Path(tmpdir) / f'embedded_pe_{idx}.efi'
+                    pe_file.write_bytes(bootloader_data[offset:end_offset])
+                    find_oem_commands(pe_file)
+                except (OSError, ValueError) as e:
+                    logger.debug('Failed to process PE at 0x%x: %s', offset, e)
+            return True
+
+    def check_bootloader_magic() -> bool | None:
+        """Check bootloader magic (first 0x50 bytes)"""
+        try:
+            with open(firmware_file, 'rb') as fh:
+                header = fh.read(0x50)
+        except OSError:
+            return None
+
+        if header.startswith(bytes.fromhex('4D 5A')):
+            logger.info('File contains portable executable magic bytes')
+            extract_bootloader_pe_files()
+            return None
+
+        for pattern in BL_MAGIC_PATTERNS[1:]:
+            if header.startswith(pattern):
+                logger.info('File contains common bootloader magic bytes')
+                if pattern == bytes.fromhex('7F 45 4C 46'):
+                    return None
+                return find_oem_commands(firmware_file)
         return None
 
-    try:
-        logger.info('Reading firmware file: %s', firmware_file)
-        with open(firmware_file, 'rb') as fh:
-            input_data = fh.read()
-            fh.close()
-    except OSError as error:
-        logger.error('Cannot read file (%s): %s', firmware_file, str(error))
-        return 0
-
-    # If string lookup is forced
-    if force_string_lookup is True:
+    if force_string_lookup:
         return find_oem_commands(firmware_file)
 
-    # Search for UEFI structure
+    if check_bootloader_magic() is True:
+        return True
+
+    try:
+        logger.info('Reading firmware file (first 10MB): %s', firmware_file)
+        with open(firmware_file, 'rb') as fh:
+            input_data = fh.read(10 * 1024 * 1024)
+    except OSError as e:
+        logger.error('Cannot read file (%s): %s', firmware_file, e)
+        return False
+
     if check_uefi_structure(input_data):
         del input_data # memory cleanup
-        return 1
-
-    # Or, if failed, check for bootloader magic
-    if check_bootloader_magic():
-        return 1
+        return True
 
     logger.error('Could not recognize the provided firmware file')
+    return False
 
-def main() -> Path:
+
+def main() -> bool:
     """Main entry point"""
 
     parser = argparse.ArgumentParser(
@@ -167,8 +210,8 @@ def main() -> Path:
         dest='fsl',
     )
     args = parser.parse_args()
-
     return check_firmware(args.file, args.fsl)
+
 
 # Initialize logger
 logger = setup_logging()
