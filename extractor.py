@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 
 #  Extract hidden "fastboot oem" commands from firmware blobs
-#  Copyright (C) 2025 chickendrop89
+#  Copyright (C) 2026 chickendrop89
 #
 #  This program is free software: you can redistribute it and/or modify
 #  it under the terms of the GNU General Public License as published by
@@ -69,7 +69,7 @@ def find_oem_commands(firmware_file: Path) -> bool:
             f'oem {s.decode("ascii", "ignore").strip()}'
             for s in strings
             # Filter only strings containing two words (e.g. "oem xxx")
-            if 2 <= len(f'oem {s.decode("ascii", "ignore").strip()}'.split()) <= 3
+            if 2 <= len(f'fastboot oem {s.decode("ascii", "ignore").strip()}'.split()) <= 3
         ))
         if cmds:
             logger.info('Matching \'oem *\' ascii strings')
