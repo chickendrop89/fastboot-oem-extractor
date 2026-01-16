@@ -22,30 +22,40 @@ pip install -r requirements.txt
 2. Prepare your firmware images from the internet, or by pulling them off the device with `adb`
 3. Run extractor.py against the image
 ```shell
-╰─$ ./extractor.py abl.img
-(x) Reading firmware file: abl.img
-(x) Found valid firmware structure at offset: 0x3000
+# Example for Redmi Note 14 Pro+ 5G (amethyst)
+
+╭─user@hostname ~/fboem ‹master› 
+╰─$ python ./extractor.py ./abl.elf
+                  
+(x) File contains common bootloader magic bytes
+(x) Reading firmware file (first 10MB): abl.elf
+(x) Found valid UEFI firmware structure at offset: 0x1000
 (x) Extracting firmware...
 (x) Found 1 UEFI portable executable(s)
 (x) Matching 'oem *' ascii strings
 
-oem device-info
-oem disable-charger-screen
-oem edl
-oem enable-charger-screen
-oem erase-vb-index
-oem fbreason
-oem getguid
-oem getlog
-oem lkmsg
-oem lock
-oem lpmsg
-oem off-mode-charge
-oem poweroff
-oem select-display-panel
-oem set-hw-fence-value
-oem uart-enable
-oem unlock
+fastboot oem allow-wipe-userdata
+fastboot oem audio-framework
+fastboot oem device-info
+fastboot oem disable-charger-screen
+fastboot oem dm-verity-enforcing
+fastboot oem edl
+fastboot oem enable-charger-screen
+fastboot oem fbreason
+fastboot oem getguid
+fastboot oem hwid
+fastboot oem lkmsg
+fastboot oem lock
+fastboot oem lpmsg
+fastboot oem off-mode-charge
+fastboot oem poweroff
+fastboot oem ramdump fat
+fastboot oem select-display-panel
+fastboot oem set-gpu-preemption
+fastboot oem set-hw-fence-value
+fastboot oem uart-enable
+fastboot oem uefilog
+fastboot oem unlock
 ```
 
 If your file is some sparse image that does not contain any UEFI PEs or common binary magic bytes,
@@ -55,9 +65,9 @@ you can force the string lookup via this command line option:
 ```
 
 ## Disclaimer:
-In rare cases, this code might output some hallucinations of commands that don't exist,
-or don't work after the device is sent out of factory. Keep this in mind
+Due to the nature of simply matching "oem" strings, the output may contain some invalid commands,
+or commands that don't work after the device is sent out of factory. Keep this in mind
 
 ## Requirements
-- Python 3.6 or newer
+- Python 3.10 or newer
 - Installed `uefi_firmware` pip package
