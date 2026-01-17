@@ -68,6 +68,12 @@ you can force the string lookup via this command line option:
 Due to the nature of simply matching "oem" strings, the output may contain some invalid commands,
 or commands that don't work after the device is sent out of factory. Keep this in mind
 
+## Similar project
+If you want to extract bootloader/charging pictures from a `imagefv` partition on your Qualcomm device,
+use my other tool:
+
+[chickendrop89/imagefv-extractor](https://github.com/chickendrop89/imagefv-extractor)
+
 ## Requirements
 - Python 3.10 or newer
 - Installed `uefi_firmware` pip package
