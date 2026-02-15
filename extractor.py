@@ -66,10 +66,10 @@ def find_oem_commands(firmware_file: Path) -> int:
     if strings:
         cmds = sorted(set(
             # (compatibility) pylint: disable=inconsistent-quotes
-            f'oem {s.decode("ascii", "ignore").strip()}'
+            f'fastboot oem {s.decode("ascii", "ignore").strip()}'
             for s in strings
                 # Filter only strings containing 2-5 words (avoid long sentence fragments)
-                if 2 <= len(f'fastboot oem {s.decode("ascii", "ignore").strip()}'.split()) <= 5
+                if 2 <= len(f'oem {s.decode("ascii", "ignore").strip()}'.split()) <= 5
 
                 # Exclude help text patterns (ex. "oem off-mode-charge 0/1")
                 and '<' not in s.decode("ascii", "ignore")
