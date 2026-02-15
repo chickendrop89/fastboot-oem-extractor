@@ -56,8 +56,8 @@ def setup_logging() -> logging.Logger:
     return log
 
 
-def find_oem_commands(firmware_file: Path) -> bool:
-    """Extract oem commands from a firmware file"""
+def find_oem_commands(firmware_file: Path) -> int:
+    """Extract oem commands from a firmware file. Returns count of commands found."""
 
     # Matching for "oem <xxx>"
     content = firmware_file.read_bytes()
@@ -74,10 +74,10 @@ def find_oem_commands(firmware_file: Path) -> bool:
         if cmds:
             logger.info('Matching \'oem *\' ascii strings')
             print('\n' + '\n'.join(cmds))
-            return True
+            return len(cmds)
 
     logger.info('No fastboot oem commands found')
-    return True
+    return 0
 
 
 def extract_pe_files(parser: AutoParser) -> bool:
@@ -166,8 +166,12 @@ def check_firmware(firmware_file: Path, force_string_lookup: bool = False) -> bo
         for pattern in BL_MAGIC_PATTERNS[1:]:
             if header.startswith(pattern):
                 logger.info('File contains common bootloader magic bytes')
+
+                # For ELF files, try string lookup first, then UEFI parsing
                 if pattern == bytes.fromhex('7F 45 4C 46'):
-                    return None
+                    if find_oem_commands(firmware_file) > 0:
+                        return True
+                    return None  # Continue to UEFI check
                 return find_oem_commands(firmware_file)
         return None
 
