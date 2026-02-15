@@ -32,7 +32,7 @@ BL_MAGIC_PATTERNS = [
     bytes.fromhex('46 42 50 4B'),  # FBPK container
     bytes.fromhex('44 48 54 42'),  # DHTB signed binary
     bytes.fromhex('7F 45 4C 46'),  # ELF binary
-    bytes.fromhex('41 4E 44 52 4F 49 44 21 CC')  # lk1st, lk2nd
+    bytes.fromhex('41 4E 44 52 4F 49 44 21')  # Second bootloaders (lk1st, lk2nd)
 ]
 
 

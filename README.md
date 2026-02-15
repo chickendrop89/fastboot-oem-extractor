@@ -4,7 +4,7 @@ Extract hidden "fastboot oem" commands from firmware blobs
 ## Supported firmware
 These firmware blobs will be accepted by this tool 
 - `ABL` (Qualcomm)
-- `LK1st, LK2nd` (Qualcomm)
+- `LK1st, LK2nd` (Qualcomm, Second BLs)
 - `LK` (MediaTek)
 - `FBPK` Containers (Google)
 - `DHTB` Signed binaries (U-Boot)
