@@ -68,6 +68,9 @@ you can force the string lookup via this command line option:
 Due to the nature of simply matching "oem" strings, the output may contain some invalid commands,
 or commands that don't work after the device is sent out of factory. Keep this in mind
 
+Also, some FBPK containers (e.g. `barbret` bootloader) are very difficult to extract
+`oem` commands from, and may not work. Most work just fine though.
+
 ## Similar project
 If you want to extract bootloader/charging pictures from a `imagefv` partition on your Qualcomm device,
 use my other tool:
