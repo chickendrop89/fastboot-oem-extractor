@@ -75,6 +75,7 @@ def find_oem_commands(firmware_file: Path) -> int:
                 and '<' not in s.decode("ascii", "ignore")
                 and '>' not in s.decode("ascii", "ignore")
                 and '/' not in s.decode("ascii", "ignore")
+                and '%' not in s.decode("ascii", "ignore")
         ))
         if cmds:
             logger.info('Matching \'oem *\' ascii strings')
