@@ -172,12 +172,10 @@ def check_firmware(firmware_file: Path, force_string_lookup: bool = False) -> bo
             if header.startswith(pattern):
                 logger.info('File contains common bootloader magic bytes')
 
-                # For ELF files, try string lookup first, then UEFI parsing
-                if pattern == bytes.fromhex('7F 45 4C 46'):
-                    if find_oem_commands(firmware_file) > 0:
-                        return True
-                    return None  # Continue to UEFI check
-                return find_oem_commands(firmware_file)
+                # Try string lookup first, then UEFI parsing
+                if find_oem_commands(firmware_file) > 0:
+                    return True
+                return None  # Continue to UEFI check
         return None
 
     if force_string_lookup:
