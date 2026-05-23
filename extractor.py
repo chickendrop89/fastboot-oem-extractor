@@ -57,7 +57,7 @@ def setup_logging() -> logging.Logger:
     return log
 
 
-def find_oem_commands(firmware_file: Path) -> int:
+def find_oem_commands(firmware_file: Path, quiet: bool = False) -> int:
     """Extract oem commands from a firmware file. Returns count of commands found."""
 
     # Matching for "oem <xxx>"
@@ -83,7 +83,9 @@ def find_oem_commands(firmware_file: Path) -> int:
             print('\n' + '\n'.join(cmds))
             return len(cmds)
 
-    logger.info('No fastboot oem commands found')
+    if not quiet:
+        logger.info('No fastboot oem commands found')
+
     return 0
 
 
@@ -178,8 +180,9 @@ def check_firmware(firmware_file: Path, force_string_lookup: bool = False) -> bo
                 logger.info('File contains common bootloader magic bytes')
 
                 # Try string lookup first, then UEFI parsing
-                if find_oem_commands(firmware_file) > 0:
+                if find_oem_commands(firmware_file, quiet=True) > 0:
                     return True
+
                 return None  # Continue to UEFI check
         return None
 
