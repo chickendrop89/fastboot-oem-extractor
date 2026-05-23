@@ -22,10 +22,6 @@ load-plugins=pylint.extensions.check_elif,
 # Pickle collected data for later comparisons.
 persistent=yes
 
-# When enabled, pylint would attempt to guess common misconfiguration and emit
-# user-friendly hints instead of false-positive error messages.
-suggestion-mode=yes
-
 
 [MESSAGES CONTROL]
 # Disable the message, report, category or checker with the given id(s). You
@@ -58,6 +54,7 @@ expected-line-ending-format=LF
 # Regexp for a line that is allowed to be longer than the limit.
 ignore-long-lines=^\s*(# )?<?https?://\S+>?$
 
+max-line-length=110
 
 [MISCELLANEOUS]
 
@@ -78,8 +75,3 @@ check-quote-consistency=yes
 # This flag controls whether the implicit-str-concat should generate a warning
 # on implicit string concatenation in sequences defined over several lines.
 check-str-concat-over-line-jumps=yes
-
-
-[FORMAT]
-
-max-line-length=110
