@@ -18,7 +18,6 @@
 
 import argparse
 import re
-import io
 import contextlib
 import logging
 import tempfile
@@ -35,6 +34,8 @@ BL_MAGIC_PATTERNS = [
     bytes.fromhex('41 4E 44 52 4F 49 44 21')  # Second bootloaders (lk1st, lk2nd)
 ]
 
+MUTE_STDOUT = contextlib.redirect_stdout(None)
+MUTE_STDERR = contextlib.redirect_stderr(None)
 
 def setup_logging() -> logging.Logger:
     """Configure logging"""
@@ -93,7 +94,7 @@ def extract_pe_files(parser: AutoParser) -> bool:
         logger.info('Extracting firmware...')
 
         # Stop dump() from writing to stdout
-        with contextlib.redirect_stdout(io.StringIO()):
+        with MUTE_STDOUT, MUTE_STDERR:
             parsed = parser.parse()
             if parsed is not None:
                 parsed.dump(tmpdir)
@@ -124,7 +125,10 @@ def check_firmware(firmware_file: Path, force_string_lookup: bool = False) -> bo
             offset = i * 2048
             if offset >= len(data):
                 break
-            parser = AutoParser(data[offset:], search=False)
+
+            with MUTE_STDOUT, MUTE_STDERR:
+                parser = AutoParser(data[offset:], search=False)
+
             if parser.type() != 'unknown':
                 logger.info('Found valid UEFI firmware structure at offset: 0x%x', offset)
                 return extract_pe_files(parser)
