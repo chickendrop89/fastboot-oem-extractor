@@ -220,7 +220,7 @@ def main() -> bool:
         help='Firmware file to analyze'
     )
     parser.add_argument(
-        '-fsl, --force-string-lookup',
+        '-fsl', '--force-string-lookup',
         help='Force string lookup on unsupported files',
         action='store_true',
         dest='fsl',
