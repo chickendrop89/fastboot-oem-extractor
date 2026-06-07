@@ -2,6 +2,7 @@
 
 !*.py
 !.*
+!.*/**
 
 !LICENSE
 !requirements.txt
